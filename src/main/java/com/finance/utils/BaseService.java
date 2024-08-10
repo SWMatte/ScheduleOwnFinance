@@ -1,6 +1,6 @@
 package com.finance.utils;
 
-public class BaseService <T> {
+public  abstract class BaseService<T>   {
 
     protected String getCurrentClassName() {
         return this.getClass().getName();

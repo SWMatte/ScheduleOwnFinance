@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Slf4j
 @Service
-public class EventRegistrationService extends BaseService<EventRegistrationDTO> implements iElement<EventRegistrationDTO> {
+public class EventRegistrationService extends BaseService implements iElement<EventRegistrationDTO> {
 
     @Autowired
     private final EventRegistrationRepository eventRegistrationRepository;
@@ -24,9 +24,8 @@ public class EventRegistrationService extends BaseService<EventRegistrationDTO> 
     @Override
     public void addElement(EventRegistrationDTO element) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-       if(!isNullValue(element)){
-
-            EventRegistration eventRegistration =  EventRegistration.builder()
+        if (!isNullValue(element)) {
+            EventRegistration eventRegistration = EventRegistration.builder()
                     .data(LocalDate.now())
                     .description(element.getDescription())
                     .value(element.getValue())
@@ -35,12 +34,28 @@ public class EventRegistrationService extends BaseService<EventRegistrationDTO> 
                     .objective(element.isObjective())
                     .typeEvent(element.getTypeEvent())
                     .build();
-           eventRegistrationRepository.save(eventRegistration);
-           log.info("Finish method: " + getCurrentMethodName());
-       }else {
-           log.error("Error into "+getCurrentClassName()  );
-           throw new RuntimeException("Problem with "+ element + " value is null");
-       }
+            eventRegistrationRepository.save(eventRegistration);
 
+            eventRegistrationRepository.converter();
+            log.info("Finish method: " + getCurrentMethodName());
+        } else {
+            log.error("Error into " + getCurrentClassName());
+            throw new RuntimeException("Problem with " + element + " value is null");
+        }
+
+    }
+
+    @Override
+    public Double visualizeAvailable() {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        Double money = eventRegistrationRepository.moneyAvailable();
+
+        if (!isNullValue(money)) {
+            return money;
+
+        } else {
+            log.error("Error into " + getCurrentClassName());
+            throw new RuntimeException("Problem with "  +money+ " value is null");
+        }
     }
 }

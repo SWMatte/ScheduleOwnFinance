@@ -4,5 +4,6 @@ public interface iElement <T>{
 
      void addElement(T element);
 
+     Double visualizeAvailable();
 
 }

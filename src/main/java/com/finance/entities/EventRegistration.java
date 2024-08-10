@@ -6,10 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.util.List;
 
 @Table(name = "Registro_Eventi")
 @Data
@@ -20,7 +19,8 @@ import java.util.Date;
 public class EventRegistration {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private int id;
+    @Column(name = "Registro_eventi_ID")
+    private int eventRegistrazionID;
     private LocalDate data;
     private String description;
     private String value;//valore in euro
@@ -29,4 +29,12 @@ public class EventRegistration {
     private boolean objective; // booleano per obiettivo previssato da scalare soldi
     @Enumerated(EnumType.STRING)
     private Type typeEvent; // tipo di evento entrata - spesa
+
+    private boolean triggered  = false;
+
+    @OneToMany(mappedBy = "eventRegistration")
+    private List<SavedMoney> savedMoneyList;
+
+    @OneToMany(mappedBy = "eventRegistration")
+    private List<HandleMoney> handleMoneyList;
 }
