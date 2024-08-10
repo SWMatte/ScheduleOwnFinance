@@ -156,18 +156,16 @@ SET SQL_SAFE_UPDATES = 1;
 END
 
 
-
-
-
-
-
 -- second store procedure
 CREATE DEFINER=`root`@`localhost` PROCEDURE `Finanza_disponibile`(out totale double)
 BEGIN
-     DECLARE total_amount DOUBLE;
-     SELECT SUM(euro_disponibili) INTO total_amount
+    DECLARE total_amount DOUBLE;
+	SET total_amount = 0;
+    SELECT SUM(euro_disponibili) INTO total_amount
     FROM gestione_spese;
-     SET totale = total_amount;
+    IF total_amount IS NULL THEN
+        SET totale = 0;
+    ELSE
+        SET totale = total_amount;
+    END IF;
 END
-
-
