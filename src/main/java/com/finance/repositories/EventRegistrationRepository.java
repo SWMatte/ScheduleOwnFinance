@@ -14,4 +14,9 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     @Procedure("Finanza_disponibile")
     Double moneyAvailable();
 
+
+    @Procedure("gestione_debito")
+    Double handleDebit();
+
+
 }

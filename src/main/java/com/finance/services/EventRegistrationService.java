@@ -4,6 +4,7 @@ import com.finance.entities.DTO.EventRegistrationDTO;
 import com.finance.entities.EventRegistration;
 import com.finance.repositories.EventRegistrationRepository;
 import com.finance.utils.BaseService;
+import com.finance.utils.ExceptionCustom;
 import jdk.jfr.Event;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +23,7 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
     private final EventRegistrationRepository eventRegistrationRepository;
 
     @Override
-    public void addElement(EventRegistrationDTO element) {
+    public void addElement(EventRegistrationDTO element) throws ExceptionCustom {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         if (!isNullValue(element)) {
             EventRegistration eventRegistration = EventRegistration.builder()
@@ -37,7 +38,15 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
             eventRegistrationRepository.save(eventRegistration);
 
             eventRegistrationRepository.converter();
+            log.info("Execute : " + " converter SP");
             log.info("Finish method: " + getCurrentMethodName());
+
+            if (element.isObjective()) {
+                eventRegistrationRepository.handleDebit();
+                log.info("Execute : " + " handleDebit SP");
+            } else {
+                throw new ExceptionCustom("Error into handleDebit SP");
+            }
         } else {
             log.error("Error into " + getCurrentClassName());
             throw new RuntimeException("Problem with " + element + " value is null");
@@ -55,7 +64,7 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
 
         } else {
             log.error("Error into " + getCurrentClassName());
-            throw new RuntimeException("Problem with "  +money+ " value is null");
+            throw new RuntimeException("Problem with " + money + " value is null");
         }
     }
 }

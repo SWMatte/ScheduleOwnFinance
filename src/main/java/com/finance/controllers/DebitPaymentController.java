@@ -37,7 +37,8 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
     }
 
-
+// TODO: AGGIUNGERE LA SP PER GESTIRE I DEBITI TRAMITE L'EVENTO COME DESCRITTO SUL WORD, PROVARE A FARE UN GIRO COMPLETO
+   // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
     @GetMapping("getListDebts")
     public ResponseEntity<?> getListDebts() {
         try {

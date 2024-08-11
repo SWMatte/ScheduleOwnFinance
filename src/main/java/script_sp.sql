@@ -1,8 +1,3 @@
-
-
-
-
--- first store procedure
 CREATE DEFINER=`root`@`localhost` PROCEDURE `converter`()
 BEGIN
 SET SQL_SAFE_UPDATES = 0;
@@ -168,4 +163,54 @@ BEGIN
     ELSE
         SET totale = total_amount;
     END IF;
+END
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `gestione_debito`(IN input_debito_id INT)
+BEGIN
+     SET SQL_SAFE_UPDATES = 0;
+
+     IF EXISTS (
+        SELECT 1
+        FROM registro_eventi
+        WHERE saved_money = 0
+          AND objective = 1
+          AND percentage_save_money = 0
+          AND triggered = 0
+          AND type_event = 'ENTRATA'
+    ) THEN
+         INSERT INTO debito_rateizzato_history (euro_dedicati, debito_id)
+        SELECT
+            value AS euro_dedicati,
+            input_debito_id AS debito_id
+        FROM
+            registro_eventi
+        WHERE
+            saved_money = 0
+            AND objective = 1
+            AND percentage_save_money = 0
+            AND triggered = 0
+            AND type_event = 'ENTRATA';
+
+        -- Aggiorna il campo triggered
+        UPDATE registro_eventi
+        SET triggered = TRUE
+        WHERE saved_money = 0
+            AND objective = 1
+            AND percentage_save_money = 0
+            AND triggered = 0
+            AND type_event = 'ENTRATA';
+    END IF;
+
+         UPDATE debito_rateizzato dr
+        JOIN (
+            SELECT
+              euro_dedicati,
+              debito_id
+			FROM
+                debito_rateizzato_history
+
+         ) AS history
+        ON dr.debito_id = history.debito_id
+        SET dr.valore_corrente = dr.valore_corrente - history.euro_dedicati;
+     SET SQL_SAFE_UPDATES = 1;
 END
