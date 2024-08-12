@@ -44,8 +44,6 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
             if (element.isObjective()) {
                 eventRegistrationRepository.handleDebit();
                 log.info("Execute : " + " handleDebit SP");
-            } else {
-                throw new ExceptionCustom("Error into handleDebit SP");
             }
         } else {
             log.error("Error into " + getCurrentClassName());

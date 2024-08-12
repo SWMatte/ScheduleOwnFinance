@@ -39,7 +39,7 @@ SET SQL_SAFE_UPDATES = 0;
 
     END IF;
 
-    -- Verifica se ci sono record da elaborare per la seconda parte
+  -- Verifica se ci sono record da elaborare per la seconda parte
     IF EXISTS (
         SELECT 1
         FROM registro_eventi
@@ -75,58 +75,6 @@ SET SQL_SAFE_UPDATES = 0;
     END IF;
 
 
-
-    IF EXISTS (
-        SELECT 1
-        FROM registro_eventi
-        WHERE 	saved_money = 1
-        AND objective = 0
-        AND percentage_save_money < 100
-		AND triggered = 0
-        AND type_event ='ENTRATA'
-    ) THEN
-
-	INSERT INTO totale_risparmiato (data, euro_risparmiati, registro_eventi_id)
-    SELECT
-		data,
-        value - (value * (percentage_save_money / 100)) AS euro_risparmiati,
-        registro_eventi_id
-
-    FROM
-        registro_eventi
-    WHERE
-        saved_money = 1
-        AND objective = 0
-        AND percentage_save_money < 100
-        AND triggered = 0
-        AND type_event ='ENTRATA';
-
-
-	INSERT INTO gestione_spese (euro_disponibili, registro_eventi_id, euro_risparmiati_id)
-    SELECT
-        r.value * (r.percentage_save_money / 100) AS euro_spendibili,
-        r.registro_eventi_id,
-        tr.euro_risparmiati_id
-    FROM
-        registro_eventi r
-    INNER JOIN totale_risparmiato tr
-        ON r.registro_eventi_id = tr.registro_eventi_id
-    WHERE
-        r.saved_money = 1
-        AND r.objective = 0
-        AND r.percentage_save_money < 100;
-
-   UPDATE registro_eventi
-    SET triggered = TRUE
-    WHERE saved_money = 1
-      AND objective = 0
-      AND percentage_save_money < 100
-      AND type_event ='ENTRATA';
-    END IF;
-
-
-    -- case spesa
-
     IF EXISTS (
         SELECT 1
         FROM registro_eventi
@@ -146,7 +94,60 @@ SET SQL_SAFE_UPDATES = 0;
     SET triggered = TRUE
     WHERE type_event ='SPESA';
     END IF;
+
+    --
+
+
+    IF EXISTS (
+        SELECT 1
+        FROM registro_eventi
+        WHERE 	saved_money = 1
+        AND objective = 0
+        AND percentage_save_money < 100
+		AND triggered = 0
+        AND type_event ='ENTRATA'
+    ) THEN
+
+	INSERT INTO totale_risparmiato (data, euro_risparmiati, registro_eventi_id)
+    SELECT
+		data,
+         (value * (percentage_save_money / 100)) AS euro_risparmiati,
+        registro_eventi_id
+
+    FROM
+        registro_eventi
+    WHERE
+        saved_money = 1
+        AND objective = 0
+        AND percentage_save_money < 100
+        AND triggered = 0
+        AND type_event ='ENTRATA';
+
+
+	INSERT INTO gestione_spese (euro_disponibili, registro_eventi_id, euro_risparmiati_id)
+    SELECT
+        r.value -  (value * (percentage_save_money / 100))AS euro_spendibili,
+        r.registro_eventi_id,
+        tr.euro_risparmiati_id
+    FROM
+        registro_eventi r
+    INNER JOIN totale_risparmiato tr
+        ON r.registro_eventi_id = tr.registro_eventi_id
+    WHERE
+		objective = 0
+        AND percentage_save_money < 100
+        AND triggered = 0
+        AND type_event ='ENTRATA';
+
+   UPDATE registro_eventi
+    SET triggered = TRUE
+    WHERE saved_money = 1
+      AND objective = 0
+      AND percentage_save_money < 100
+      AND type_event ='ENTRATA';
+    END IF;
 SET SQL_SAFE_UPDATES = 1;
+
 
 END
 
@@ -214,3 +215,25 @@ BEGIN
         SET dr.valore_corrente = dr.valore_corrente - history.euro_dedicati;
      SET SQL_SAFE_UPDATES = 1;
 END
+-- QUERY VISTA
+CREATE OR REPLACE VIEW riepilogo AS
+SELECT
+    re.description,
+    re.data,
+    re.type_event,
+    re.value,
+    t.euro_risparmiati,
+    gs.euro_disponibili,
+    -- Calcolo della percentuale di risparmio
+    CASE
+        WHEN re.value > 0 THEN (t.euro_risparmiati / re.value) * 100
+        ELSE 0
+    END AS percentuale_risparmio
+FROM
+    registro_eventi re
+INNER JOIN
+    totale_risparmiato t
+    ON re.registro_eventi_id = t.registro_eventi_id
+INNER JOIN
+    gestione_spese gs
+    ON re.registro_eventi_id = gs.registro_eventi_id;
