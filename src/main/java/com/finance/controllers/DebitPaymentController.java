@@ -15,7 +15,7 @@ import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
-@RequestMapping("api/v1")
+@RequestMapping("api/v1/")
 @RestController
 public class DebitPaymentController extends BaseService<DebitPayment> {
 
@@ -37,8 +37,8 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
     }
 
-// TODO: AGGIUNGERE LA SP PER GESTIRE I DEBITI TRAMITE L'EVENTO COME DESCRITTO SUL WORD, PROVARE A FARE UN GIRO COMPLETO
-   // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
+    // TODO: AGGIUNGERE LA SP PER GESTIRE I DEBITI TRAMITE L'EVENTO COME DESCRITTO SUL WORD, PROVARE A FARE UN GIRO COMPLETO
+    // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
     @GetMapping("getListDebts")
     public ResponseEntity<?> getListDebts() {
         try {
@@ -51,4 +51,12 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
         }
 
     }
+
+    @GetMapping("reduceDebit")
+    public void reduceDebit(@RequestParam int idDebit) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        log.info("call procedure reduceDebit");
+        iDebitPayment.reduceDebit(idDebit);
+    }
+
 }

@@ -41,10 +41,7 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
             log.info("Execute : " + " converter SP");
             log.info("Finish method: " + getCurrentMethodName());
 
-            if (element.isObjective()) {
-                eventRegistrationRepository.handleDebit();
-                log.info("Execute : " + " handleDebit SP");
-            }
+
         } else {
             log.error("Error into " + getCurrentClassName());
             throw new RuntimeException("Problem with " + element + " value is null");
@@ -65,4 +62,7 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
             throw new RuntimeException("Problem with " + money + " value is null");
         }
     }
+
+
+
 }

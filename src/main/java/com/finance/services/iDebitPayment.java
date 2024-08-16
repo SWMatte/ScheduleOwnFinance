@@ -10,4 +10,6 @@ public interface iDebitPayment {
 
      List<DebitPayment> visualizeAvailable();
 
+     void reduceDebit(int idDebit);
+
 }

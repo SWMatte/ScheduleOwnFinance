@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
- @Slf4j
+@Slf4j
 @Service
 @Data
 public class DebitPaymentService extends BaseService implements iDebitPayment {
@@ -46,10 +46,22 @@ public class DebitPaymentService extends BaseService implements iDebitPayment {
     @Override
     public List<DebitPayment> visualizeAvailable() {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        debitPaymentRepository.setSettledTrue();
         if (!debitPaymentRepository.listCurrentDebts().isEmpty()) {
             return debitPaymentRepository.listCurrentDebts();
         }
         throw new EntityExistsException("Non esistono debiti a DB");
+    }
+
+    @Override
+    public void reduceDebit(int idDebit) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        if (idDebit > 0) {
+            log.info("CALL procedure handleDebit");
+            debitPaymentRepository.handleDebit(idDebit);
+            log.info("Finish method: " + getCurrentMethodName());
+
+        }
     }
 
 
