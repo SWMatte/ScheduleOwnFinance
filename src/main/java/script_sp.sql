@@ -293,20 +293,20 @@ END
 -- QUERY VISTA
 CREATE OR REPLACE VIEW riepilogo AS
 SELECT
-	re.registro_eventi_id,
-    re.description,
-    re.data,
-    re.type_event,
-    re.value,
-    t.euro_risparmiati,
+	re.registro_eventi_id as 'Registro_eventi_id',
+    re.description as 'Descrizione',
+    re.data as 'Data',
+    re.type_event as 'Tipo_evento',
+    re.value as 'Valore',
+    t.euro_risparmiati 'Euro_risparmiati',
     CASE
         WHEN re.value > 0 THEN (t.euro_risparmiati / re.value) * 100
 	ELSE 0
-    END AS percentuale_risparmio,
+    END AS Percentuale_risparmio,
     CASE
         WHEN re.objective = 1 THEN 'si'
         ELSE 'no'
-    END AS debito
+    END AS Debito
 
 FROM
     registro_eventi re
