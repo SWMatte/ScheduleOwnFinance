@@ -96,7 +96,8 @@ WHERE
                 type_event = 'SPESA' AND saved_money = 0
                     AND objective = 0
                     AND percentage_save_money = 0
-                    AND triggered = 0) AS subquery);
+                    AND triggered = 0)
+              AS subquery);
 
         END IF;
 
@@ -292,22 +293,22 @@ END
 -- QUERY VISTA
 CREATE OR REPLACE VIEW riepilogo AS
 SELECT
+	re.registro_eventi_id,
     re.description,
     re.data,
     re.type_event,
     re.value,
     t.euro_risparmiati,
-    gs.euro_disponibili,
-    -- Calcolo della percentuale di risparmio
     CASE
         WHEN re.value > 0 THEN (t.euro_risparmiati / re.value) * 100
-        ELSE 0
-    END AS percentuale_risparmio
+	ELSE 0
+    END AS percentuale_risparmio,
+    CASE
+        WHEN re.objective = 1 THEN 'si'
+        ELSE 'no'
+    END AS debito
+
 FROM
     registro_eventi re
-INNER JOIN
-    totale_risparmiato t
-    ON re.registro_eventi_id = t.registro_eventi_id
-INNER JOIN
-    gestione_spese gs
-    ON re.registro_eventi_id = gs.registro_eventi_id;
+LEFT JOIN
+    totale_risparmiato t ON re.registro_eventi_id = t.registro_eventi_id
