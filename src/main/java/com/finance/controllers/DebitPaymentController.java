@@ -37,26 +37,22 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
     }
 
-    // TODO: AGGIUNGERE LA SP PER GESTIRE I DEBITI TRAMITE L'EVENTO COME DESCRITTO SUL WORD, PROVARE A FARE UN GIRO COMPLETO
     // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
     @GetMapping("getListDebts")
     public ResponseEntity<?> getListDebts() {
-        try {
-            List<DebitPayment> listDebts = iDebitPayment.visualizeAvailable();
-            return ResponseEntity.ok().body(listDebts);
-        } catch (EntityExistsException e) {
-            log.error("Error into: " + getCurrentClassName() + "method: " + getCurrentMethodName());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 
-        }
+        List<DebitPayment> listDebts = iDebitPayment.visualizeAvailable();
+        return ResponseEntity.ok().body(listDebts);
+
 
     }
 
     @GetMapping("reduceDebit")
-    public void reduceDebit(@RequestParam int idDebit) {
+    public ResponseEntity<?> reduceDebit(@RequestParam int idDebit) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-        log.info("call procedure reduceDebit");
-        iDebitPayment.reduceDebit(idDebit);
+         iDebitPayment.reduceDebit(idDebit);
+
+        return ResponseEntity.ok().body(HttpStatus.OK);
     }
 
 }

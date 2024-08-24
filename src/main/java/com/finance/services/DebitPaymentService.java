@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -46,18 +47,26 @@ public class DebitPaymentService extends BaseService implements iDebitPayment {
     @Override
     public List<DebitPayment> visualizeAvailable() {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-        debitPaymentRepository.setSettledTrue();
-        if (!debitPaymentRepository.listCurrentDebts().isEmpty()) {
+        debitPaymentRepository.disableSafeUpdates();
+        debitPaymentRepository.updateSettledTrue();
+        debitPaymentRepository.enableSafeUpdates();
+
+
+
+         if (!debitPaymentRepository.listCurrentDebts().isEmpty()) {
             return debitPaymentRepository.listCurrentDebts();
+        }else {
+            log.info("Non esistono debiti a DB");
+            return new ArrayList<>();
         }
-        throw new EntityExistsException("Non esistono debiti a DB");
-    }
+
+     }
 
     @Override
     public void reduceDebit(int idDebit) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         if (idDebit > 0) {
-            log.info("CALL procedure handleDebit");
+            log.info("CALL procedure handleDebit(gestione_debito)");
             debitPaymentRepository.handleDebit(idDebit);
             log.info("Finish method: " + getCurrentMethodName());
 

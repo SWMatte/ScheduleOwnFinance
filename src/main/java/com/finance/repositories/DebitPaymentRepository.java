@@ -22,15 +22,21 @@ public interface DebitPaymentRepository extends JpaRepository<DebitPayment,Integ
             """)
     List<DebitPayment> listCurrentDebts();
 
+
     @Modifying
     @Transactional
-    @Query("""
-        UPDATE DebitPayment deb
-        SET deb.settled = true
-        WHERE deb.valueFinish = 0
-        """)
-    void setSettledTrue();
+    @Query(value = "SET SQL_SAFE_UPDATES = 0", nativeQuery = true)
+    void disableSafeUpdates();
 
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE Debito_Rateizzato SET debito_saldato = true WHERE valore_corrente = 0", nativeQuery = true)
+    void updateSettledTrue();
+
+    @Modifying
+    @Transactional
+    @Query(value = "SET SQL_SAFE_UPDATES = 1", nativeQuery = true)
+    void enableSafeUpdates();
 
     @Procedure("gestione_debito")
     void handleDebit(int debitId);

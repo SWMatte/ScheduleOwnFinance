@@ -37,7 +37,7 @@ public class EventRegistrationService extends BaseService implements iElement<Ev
                     .build();
             eventRegistrationRepository.save(eventRegistration);
 
-            eventRegistrationRepository.converter();
+             eventRegistrationRepository.converter();
             log.info("Execute : " + " converter SP");
             log.info("Finish method: " + getCurrentMethodName());
 
