@@ -1,27 +1,46 @@
 package com.finance.services;
 
+import com.finance.entities.DTO.FinanceDTO;
 import com.finance.entities.Summary;
 import com.finance.repositories.SummaryRepository;
+import com.finance.utils.BaseService;
+import com.finance.utils.ExceptionCustom;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class SummaryService {
+@Slf4j
+public class SummaryService extends BaseService {
 
     @Autowired
     private final SummaryRepository summaryRepository;
 
 
-    //TODO: aggiorna la lista con i controlli + fai le altre query a db per le tabelle, una per il devito , una che richiama la finanza dispo 3 tabelle a frontend nella home
-    //TODO: vedi se aggiungere categorie come parametri
-    public List<Summary> getAllValues(){
+      public List<Summary> getAllValues() throws ExceptionCustom {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        List<Summary> listSummary = summaryRepository.findAll();
+        if (!isNullValue(listSummary)) {
+            return listSummary;
+        } else {
+            throw new ExceptionCustom("Error to retrieve view from database");
+        }
+    }
 
-        return  summaryRepository.findAll();
+
+    public FinanceDTO getFinance() {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        Double value = summaryRepository.getFinance();
+        FinanceDTO finance = FinanceDTO.builder().actualFinance(value).build();
+        log.info("Finish method: " + getCurrentMethodName());
+        return finance;
 
     }
+
 
 }

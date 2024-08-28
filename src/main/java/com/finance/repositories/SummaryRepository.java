@@ -9,5 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 public interface SummaryRepository extends JpaRepository<Summary,Integer> {
 
 
+    @Procedure("Finanza_disponibile")
+    @Transactional
+    Double getFinance();
 
 }
