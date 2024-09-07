@@ -31,7 +31,7 @@ public class SummaryItDTO {
     @Enumerated(EnumType.STRING)
     private Type TipoEvento;
 
-    private Double Valore;
+    private Double ValoreInserito;
 
     private Double EuroRisparmiati;
 

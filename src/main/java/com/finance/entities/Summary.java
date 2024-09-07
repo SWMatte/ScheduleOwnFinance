@@ -32,7 +32,7 @@ public class Summary {
     @Enumerated(EnumType.STRING)
     private Type typeEvent;
 
-    @Column(name = "Valore")
+    @Column(name = "Valore_inserito")
     private Double value;
 
     @Column(name = "Euro_risparmiati")
