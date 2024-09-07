@@ -23,15 +23,18 @@ public class SummaryService extends BaseService {
     private final SummaryRepository summaryRepository;
 
 
-      public List<SummaryItDTO> getAllValues() throws ExceptionCustom {
+    public List<SummaryItDTO> getAllValues(String month) throws ExceptionCustom {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        List<SummaryItDTO> listSummary = null;
+        if (isNullValue(month)) {
+            log.info("Finish method: " + getCurrentMethodName() + "not filtered");
+            return listSummary = summaryRepository.findAllElements();
 
-        List<SummaryItDTO> listSummary = summaryRepository.findAllElements();
-        if (!isNullValue(listSummary)) {
-            return listSummary;
         } else {
-            throw new ExceptionCustom("Error to retrieve view from database");
+            log.info("Finish method: " + getCurrentMethodName() + " filtered ");
+            return listSummary = summaryRepository.findSpecificElements(month);
         }
+
     }
 
 

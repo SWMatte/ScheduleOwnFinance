@@ -29,10 +29,15 @@ public class SummaryController extends BaseService<DebitPayment> {
 
 
     @GetMapping("getList")
-    public ResponseEntity<?> getListDebts() {
+    public ResponseEntity<?> getListDebts(@RequestParam String month) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        if(month.isEmpty() || month.isBlank()){
+            month=null;
+        }
+
         try {
-            List<SummaryItDTO> listDebts = summaryService.getAllValues();
+
+            List<SummaryItDTO> listDebts = summaryService.getAllValues(month);
             return ResponseEntity.ok().body(listDebts);
 
         } catch (ExceptionCustom e) {

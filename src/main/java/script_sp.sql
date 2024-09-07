@@ -243,18 +243,21 @@ END
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `gestione_debito`(IN input_debito_id INT)
 BEGIN
-     SET SQL_SAFE_UPDATES = 0;
+    -- Disabilita aggiornamenti sicuri per permettere l'inserimento
+    SET SQL_SAFE_UPDATES = 0;
 
-     IF EXISTS (
+    -- Verifica se esistono record con le condizioni specificate
+    IF EXISTS (
         SELECT 1
         FROM registro_eventi
         WHERE saved_money = 0
           AND objective = 1
           AND percentage_save_money = 0
           AND triggered = 0
-          AND type_event = 'ENTRATA'
+          AND type_event = 'DEBITO'
     ) THEN
-         INSERT INTO debito_rateizzato_history (euro_dedicati, debito_id)
+        -- Inserisce nuovi record nella tabella debito_rateizzato_history
+        INSERT INTO debito_rateizzato_history (euro_dedicati, debito_id)
         SELECT
             value AS euro_dedicati,
             input_debito_id AS debito_id
@@ -265,7 +268,7 @@ BEGIN
             AND objective = 1
             AND percentage_save_money = 0
             AND triggered = 0
-            AND type_event = 'ENTRATA';
+            AND type_event = 'DEBITO';
 
         -- Aggiorna il campo triggered
         UPDATE registro_eventi
@@ -274,41 +277,59 @@ BEGIN
             AND objective = 1
             AND percentage_save_money = 0
             AND triggered = 0
-            AND type_event = 'ENTRATA';
+            AND type_event = 'DEBITO';
     END IF;
 
-         UPDATE debito_rateizzato dr
-        JOIN (
-            SELECT
-              euro_dedicati,
-              debito_id
-			FROM
-                debito_rateizzato_history
-
-         ) AS history
-        ON dr.debito_id = history.debito_id
-        SET dr.valore_corrente = dr.valore_corrente - history.euro_dedicati;
-     SET SQL_SAFE_UPDATES = 1;
+        -- Aggiorna il valore corrente nella tabella debito_rateizzato solo per l'input_debito_id specificato
+	UPDATE debito_rateizzato dr
+        JOIN
+    (SELECT
+        history.debito_history_id,
+            history.euro_dedicati,
+            history.debito_id
+    FROM
+        debito_rateizzato_history history
+    WHERE
+        history.debito_history_id = (SELECT
+                MAX(sub_history.debito_history_id)
+            FROM
+                debito_rateizzato_history sub_history
+            WHERE
+                sub_history.debito_id = history.debito_id)) latest_history
+ON dr.debito_id = latest_history.debito_id
+SET
+    dr.valore_corrente = dr.valore_corrente - latest_history.euro_dedicati
+WHERE
+    dr.debito_id = input_debito_id;
+    -- Ripristina gli aggiornamenti sicuri
+    SET SQL_SAFE_UPDATES = 1;
 END
 -- QUERY VISTA
-CREATE OR REPLACE VIEW riepilogo AS
 SELECT
 	re.registro_eventi_id as 'Registro_eventi_id',
     re.description as 'Descrizione',
     re.data as 'Data',
     re.type_event as 'Tipo_evento',
-    re.value as 'Valore',
-    t.euro_risparmiati 'Euro_risparmiati',
-    CASE
-        WHEN re.value > 0 THEN (t.euro_risparmiati / re.value) * 100
-	ELSE 0
-    END AS Percentuale_risparmio,
-    CASE
-        WHEN re.objective = 1 THEN 'si'
-        ELSE 'no'
-    END AS Debito
-
-FROM
+    re.value as 'Valore_inserito',
+    CASE WHEN re.percentage_save_money = 0 AND re.saved_money = 0 AND re.objective = 0 AND re.type_event = 'ENTRATA'  -- spendo tutto cio che inserisco
+		THEN 0
+		ELSE t.euro_risparmiati
+	END AS 'Euro_risparmiati',
+	CASE WHEN  gs.euro_disponibili > 0
+			THEN gs.euro_disponibili
+			ELSE
+				CASE WHEN re.type_event ='SPESA'
+						THEN null
+                        ELSE null
+				END
+	END AS 'Euro_disponibili',
+	CASE WHEN re.percentage_save_money = 0 AND re.saved_money = 0 AND re.objective = 0 AND re.type_event = 'ENTRATA'  -- spendo tutto cio che inserisco
+    THEN 0
+    ELSE
+        (t.euro_risparmiati / re.value) * 100   -- risparmio qualcosa
+	END AS Percentuale_risparmio
+    FROM
     registro_eventi re
 LEFT JOIN
     totale_risparmiato t ON re.registro_eventi_id = t.registro_eventi_id
+LEFT JOIN gestione_spese gs ON re.registro_eventi_id = gs.registro_eventi_id
