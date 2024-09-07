@@ -305,7 +305,7 @@ WHERE
     SET SQL_SAFE_UPDATES = 1;
 END
 -- QUERY VISTA
-SELECT
+CREATE VIEW riepilogo as ( SELECT
 	re.registro_eventi_id as 'Registro_eventi_id',
     re.description as 'Descrizione',
     re.data as 'Data',
@@ -333,3 +333,4 @@ SELECT
 LEFT JOIN
     totale_risparmiato t ON re.registro_eventi_id = t.registro_eventi_id
 LEFT JOIN gestione_spese gs ON re.registro_eventi_id = gs.registro_eventi_id
+)
