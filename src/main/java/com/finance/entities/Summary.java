@@ -38,12 +38,13 @@ public class Summary {
     @Column(name = "Euro_risparmiati")
     private Double euroSaved;
 
+    @Column(name = "Euro_disponibili")
+    private String euroAvailable;
 
     @Column(name = "Percentuale_risparmio")
     private Double percentageSaved;
 
 
-    @Column(name = "Debito")
-    private String debit;
+
 
 }
