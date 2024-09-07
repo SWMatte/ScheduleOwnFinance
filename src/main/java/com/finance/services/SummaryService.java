@@ -1,6 +1,7 @@
 package com.finance.services;
 
 import com.finance.entities.DTO.FinanceDTO;
+import com.finance.entities.DTO.SummaryItDTO;
 import com.finance.entities.Summary;
 import com.finance.repositories.SummaryRepository;
 import com.finance.utils.BaseService;
@@ -22,9 +23,10 @@ public class SummaryService extends BaseService {
     private final SummaryRepository summaryRepository;
 
 
-      public List<Summary> getAllValues() throws ExceptionCustom {
+      public List<SummaryItDTO> getAllValues() throws ExceptionCustom {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-        List<Summary> listSummary = summaryRepository.findAll();
+
+        List<SummaryItDTO> listSummary = summaryRepository.findAllElements();
         if (!isNullValue(listSummary)) {
             return listSummary;
         } else {

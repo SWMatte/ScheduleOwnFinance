@@ -2,6 +2,7 @@ package com.finance.controllers;
 
 import com.finance.entities.DTO.EventRegistrationDTO;
 import com.finance.entities.DTO.FinanceDTO;
+import com.finance.entities.DTO.SummaryItDTO;
 import com.finance.entities.DebitPayment;
 import com.finance.entities.Summary;
 import com.finance.services.SummaryService;
@@ -31,7 +32,7 @@ public class SummaryController extends BaseService<DebitPayment> {
     public ResponseEntity<?> getListDebts() {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         try {
-            List<Summary> listDebts = summaryService.getAllValues();
+            List<SummaryItDTO> listDebts = summaryService.getAllValues();
             return ResponseEntity.ok().body(listDebts);
 
         } catch (ExceptionCustom e) {
