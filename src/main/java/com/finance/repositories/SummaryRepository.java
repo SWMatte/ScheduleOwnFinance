@@ -26,8 +26,8 @@ public interface SummaryRepository extends JpaRepository<Summary,Integer> {
         s.typeEvent,
         s.value,
         s.euroSaved,
-        s.percentageSaved,
-        s.debit
+        s.euroAvailable,
+        s.percentageSaved
         )
         FROM Summary s
         """)
@@ -36,18 +36,18 @@ public interface SummaryRepository extends JpaRepository<Summary,Integer> {
 
 
     @Query("""
-        SELECT NEW com.finance.entities.DTO.SummaryItDTO(
+       SELECT NEW com.finance.entities.DTO.SummaryItDTO(
         s.summaryId,
         s.description,
         s.data,
         s.typeEvent,
         s.value,
         s.euroSaved,
-        s.percentageSaved,
-        s.debit
+        s.euroAvailable,
+        s.percentageSaved
         )
         FROM Summary s
         WHERE MONTH(s.data) =:month
-        """)
+       """)
     List<SummaryItDTO> findSpecificElements(String month);
 }
