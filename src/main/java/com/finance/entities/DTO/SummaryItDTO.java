@@ -35,7 +35,7 @@ public class SummaryItDTO {
 
     private Double EuroRisparmiati;
 
-    private String EuroAvailable;
+    private String EuroDisponibili;
 
     private Double PercentualeRisparmio;
 
