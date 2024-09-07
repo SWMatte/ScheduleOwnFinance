@@ -32,4 +32,22 @@ public interface SummaryRepository extends JpaRepository<Summary,Integer> {
         FROM Summary s
         """)
     List<SummaryItDTO> findAllElements();
+
+
+
+    @Query("""
+        SELECT NEW com.finance.entities.DTO.SummaryItDTO(
+        s.summaryId,
+        s.description,
+        s.data,
+        s.typeEvent,
+        s.value,
+        s.euroSaved,
+        s.percentageSaved,
+        s.debit
+        )
+        FROM Summary s
+        WHERE MONTH(s.data) =:month
+        """)
+    List<SummaryItDTO> findSpecificElements(String month);
 }
