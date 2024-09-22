@@ -305,28 +305,53 @@ WHERE
     SET SQL_SAFE_UPDATES = 1;
 END
 -- QUERY VISTA
-CREATE VIEW riepilogo as ( SELECT
+CREATE OR REPLACE VIEW riepilogo as ( SELECT
 	re.registro_eventi_id as 'Registro_eventi_id',
     re.description as 'Descrizione',
     re.data as 'Data',
     re.type_event as 'Tipo_evento',
     re.value as 'Valore_inserito',
-    CASE WHEN re.percentage_save_money = 0 AND re.saved_money = 0 AND re.objective = 0 AND re.type_event = 'ENTRATA'  -- spendo tutto cio che inserisco
-		THEN 0
-		ELSE t.euro_risparmiati
-	END AS 'Euro_risparmiati',
-	CASE WHEN  gs.euro_disponibili > 0
-			THEN gs.euro_disponibili
-			ELSE
-				CASE WHEN re.type_event ='SPESA'
-						THEN null
-                        ELSE null
-				END
-	END AS 'Euro_disponibili',
-	CASE WHEN re.percentage_save_money = 0 AND re.saved_money = 0 AND re.objective = 0 AND re.type_event = 'ENTRATA'  -- spendo tutto cio che inserisco
+ CASE
+    -- Se è ENTRATA e le condizioni specifiche sono soddisfatte
+    WHEN re.percentage_save_money = 0
+         AND re.saved_money = 0
+         AND re.objective = 0
+         AND re.type_event = 'ENTRATA'
     THEN 0
+
+    -- Se è DEBITO e le condizioni specifiche sono soddisfatte
+    WHEN re.percentage_save_money = 0
+         AND re.saved_money = 0
+         AND re.objective = 1
+         AND re.type_event = 'DEBITO'
+    THEN 0
+
+    -- Altrimenti restituisci t.euro_risparmiati
+    ELSE t.euro_risparmiati
+END AS 'Euro_risparmiati',
+	CASE
+    WHEN gs.euro_disponibili > 0
+        THEN gs.euro_disponibili
     ELSE
-        (t.euro_risparmiati / re.value) * 100   -- risparmio qualcosa
+        CASE
+            WHEN re.type_event = 'SPESA'
+                THEN null
+            WHEN re.type_event = 'DEBITO'
+                THEN 0
+            ELSE NULL
+        END
+END AS 'Euro_disponibili',
+	 CASE
+    -- Se è ENTRATA e le condizioni specifiche sono soddisfatte
+   WHEN re.percentage_save_money = 0 AND re.saved_money = 0 AND re.objective = 0 AND re.type_event = 'ENTRATA'
+    THEN 0
+
+    -- Se è DEBITO e le condizioni specifiche sono soddisfatte
+   WHEN re.percentage_save_money = 0 AND re.saved_money = 0 AND re.objective = 1 AND re.type_event = 'DEBITO'
+    THEN 0
+
+    -- Altrimenti restituisci t.euro_risparmiati
+    ELSE (t.euro_risparmiati / re.value) * 100   -- risparmio qualcosa
 	END AS Percentuale_risparmio
     FROM
     registro_eventi re
