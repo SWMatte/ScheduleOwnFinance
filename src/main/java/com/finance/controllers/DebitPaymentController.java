@@ -1,9 +1,9 @@
 package com.finance.controllers;
 
+import com.finance.entities.DTO.DebitsDTO;
 import com.finance.entities.DebitPayment;
 import com.finance.services.iDebitPayment;
 import com.finance.utils.BaseService;
-import jakarta.persistence.EntityExistsException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,5 +54,31 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
         return ResponseEntity.ok().body(HttpStatus.OK);
     }
+
+    @GetMapping("getCompletedDebts")
+    public ResponseEntity<?>     visualizeCompletedDebts() {
+
+        List<DebitPayment> listDebts = iDebitPayment.visualizeCompletedDebts();
+        return ResponseEntity.ok().body(listDebts);
+    }
+
+
+    @GetMapping("getMoreinfoDebts")
+    public ResponseEntity<?> visualizeMoreInfoDebts(@RequestParam String debitoID) {
+
+        DebitsDTO listDebts = iDebitPayment.visualizeMoreInfoDebts(debitoID);
+        return ResponseEntity.ok().body(listDebts);
+    }
+    @GetMapping("getNumbersOfTotalDebts")
+    public ResponseEntity<?> numbersOfTotalDebts() {
+
+
+        return ResponseEntity.ok().body( iDebitPayment.numbersOfTotalDebts());
+    }
+    @GetMapping("getNumbersOfFinishDebts")
+    public ResponseEntity<?> numbersOfFinishDebts() {
+        return ResponseEntity.ok().body(iDebitPayment.numbersOfFinishDebts());
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.finance.services;
 
+import com.finance.entities.DTO.DebitsDTO;
 import com.finance.entities.DebitPayment;
 import com.finance.repositories.DebitPaymentRepository;
 import com.finance.utils.BaseService;
@@ -47,6 +48,7 @@ public class DebitPaymentService extends BaseService implements iDebitPayment {
     @Override
     public List<DebitPayment> visualizeAvailable() {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        // update debit when is completed issue with lock on db
         debitPaymentRepository.disableSafeUpdates();
         debitPaymentRepository.updateSettledTrue();
         debitPaymentRepository.enableSafeUpdates();
@@ -71,6 +73,32 @@ public class DebitPaymentService extends BaseService implements iDebitPayment {
             log.info("Finish method: " + getCurrentMethodName());
 
         }
+    }
+
+    @Override
+    public List<DebitPayment> visualizeCompletedDebts() {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        return debitPaymentRepository.ListCompletedDebit();
+    }
+
+    @Override
+    public DebitsDTO visualizeMoreInfoDebts(String debitoID) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        return debitPaymentRepository.moreInfoDebts(debitoID);
+    }
+
+    @Override
+    public Double numbersOfTotalDebts() {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        return debitPaymentRepository.numbersOfTotalDebts();
+
+    }
+
+    @Override
+    public Double numbersOfFinishDebts() {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        return debitPaymentRepository.numbersOfFinishDebts();
+
     }
 
 

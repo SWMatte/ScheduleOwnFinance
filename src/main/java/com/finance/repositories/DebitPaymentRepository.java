@@ -1,5 +1,7 @@
 package com.finance.repositories;
 
+import com.finance.entities.DTO.DebitsDTO;
+import com.finance.entities.DTO.SummaryItDTO;
 import com.finance.entities.DebitPayment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -40,5 +42,46 @@ public interface DebitPaymentRepository extends JpaRepository<DebitPayment,Integ
 
     @Procedure("gestione_debito")
     void handleDebit(int debitId);
+
+
+
+    @Query("""
+            SELECT deb
+            FROM DebitPayment deb
+            """)
+    List<DebitPayment> ListCompletedDebit();
+
+
+    @Query("""
+    SELECT NEW com.finance.entities.DTO.DebitsDTO(
+        dp.data,
+        dp.description,
+        dp.settled,
+        dp.valueFinish,
+        dp.valueStart,
+        SUM(dph.value)
+    )
+    FROM DebitPayment dp
+    JOIN DebitPaymentHistory dph ON dp.debitID = dph.debitPayment.debitID
+    WHERE dp.debitID =:debitoID
+    """)
+    DebitsDTO moreInfoDebts(String debitoID);
+
+
+
+    @Query("""
+            SELECT count(deb.debitID)
+            FROM DebitPayment deb
+            WHERE deb.settled = true
+            """)
+    Double  numbersOfFinishDebts();
+
+    @Query("""
+            SELECT count(deb.debitID)
+            FROM DebitPayment deb
+            """)
+    Double  numbersOfTotalDebts();
+
+
 
 }
