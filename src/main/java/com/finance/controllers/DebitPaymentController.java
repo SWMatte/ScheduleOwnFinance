@@ -35,6 +35,12 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
         }
 
 
+    }  @GetMapping("reduceDebit")
+    public ResponseEntity<?> reduceDebit(@RequestParam int idDebit) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        iDebitPayment.reduceDebit(idDebit);
+
+        return ResponseEntity.ok().body(HttpStatus.OK);
     }
 
     // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
@@ -47,13 +53,7 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
     }
 
-    @GetMapping("reduceDebit")
-    public ResponseEntity<?> reduceDebit(@RequestParam int idDebit) {
-        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-         iDebitPayment.reduceDebit(idDebit);
 
-        return ResponseEntity.ok().body(HttpStatus.OK);
-    }
 
     @GetMapping("getCompletedDebts")
     public ResponseEntity<?>     visualizeCompletedDebts() {
@@ -69,6 +69,8 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
         DebitsDTO listDebts = iDebitPayment.visualizeMoreInfoDebts(debitoID);
         return ResponseEntity.ok().body(listDebts);
     }
+
+
     @GetMapping("getNumbersOfTotalDebts")
     public ResponseEntity<?> numbersOfTotalDebts() {
 
