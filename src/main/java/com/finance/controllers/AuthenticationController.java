@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("api/v1/")
 @RestController
-public class AuthenticationController extends BaseService<DebitPayment> {
+public class AuthenticationController extends BaseService<String> {
 
     @Autowired
     private final iUserService userService;
@@ -48,10 +48,23 @@ public class AuthenticationController extends BaseService<DebitPayment> {
         }
     }
 
-    @GetMapping("prova")
+
+    @PostMapping("changePassword")
     @Authorized(roles = {Role.ADMIN})
-    public String get(){
-        return "CIAO";
+    public ResponseEntity<?> changePassword(@RequestParam String password,User user) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        try {
+            if(!isNullValue(password)){
+                return ResponseEntity.ok(userService.changePassword(password,user));
+            }else{
+                throw new RuntimeException("Password input is empty");
+            }
+        } catch (RuntimeException e) {
+            log.error("Error into: " + getCurrentClassName() + "method: " + getCurrentMethodName());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
+
+
 
 }

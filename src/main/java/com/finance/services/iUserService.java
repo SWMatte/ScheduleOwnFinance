@@ -16,4 +16,6 @@ public interface iUserService {
     RegisterResponse saveUser(User user);
 
     AuthenticationResponse authenticate(AuthenticationRequest request);
+
+    String changePassword ( String newPassword, User user);
 }

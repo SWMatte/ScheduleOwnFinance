@@ -1,5 +1,7 @@
 package com.finance.controllers;
 
+import com.finance.entities.Auth.Authorized;
+import com.finance.entities.Auth.Role;
 import com.finance.entities.DTO.EventRegistrationDTO;
 import com.finance.entities.DTO.FinanceDTO;
 import com.finance.entities.DTO.SummaryItDTO;
@@ -29,32 +31,25 @@ public class SummaryController extends BaseService<DebitPayment> {
 
 
     @GetMapping("getList")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> getListDebts(@RequestParam String month) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         if(month.isEmpty() || month.isBlank()){
             month=null;
         }
-
         try {
-
             List<SummaryItDTO> listDebts = summaryService.getAllValues(month);
             return ResponseEntity.ok().body(listDebts);
-
         } catch (ExceptionCustom e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
-
     @GetMapping("getFinance")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> getFinance() {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
             FinanceDTO finance = summaryService.getFinance();
             return ResponseEntity.ok().body(finance);
-
     }
-
-
-
-
 }

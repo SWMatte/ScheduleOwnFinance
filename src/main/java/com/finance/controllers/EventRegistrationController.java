@@ -1,5 +1,7 @@
 package com.finance.controllers;
 
+import com.finance.entities.Auth.Authorized;
+import com.finance.entities.Auth.Role;
 import com.finance.entities.DTO.EventRegistrationDTO;
 import com.finance.services.iElement;
 import com.finance.utils.BaseService;
@@ -24,6 +26,7 @@ public class EventRegistrationController extends BaseService<EventRegistrationDT
 
 
     @PostMapping("addEvent")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> addElement(@RequestBody EventRegistrationDTO eventRegistration) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
 
@@ -41,6 +44,7 @@ public class EventRegistrationController extends BaseService<EventRegistrationDT
 
 
     @GetMapping("getMoney")
+    @Authorized(roles = {Role.ADMIN})
     public Double getMoneyAvailable() {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         return eventRegistrationService.visualizeAvailable();

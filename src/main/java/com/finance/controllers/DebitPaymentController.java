@@ -1,5 +1,7 @@
 package com.finance.controllers;
 
+import com.finance.entities.Auth.Authorized;
+import com.finance.entities.Auth.Role;
 import com.finance.entities.DTO.DebitsDTO;
 import com.finance.entities.DebitPayment;
 import com.finance.services.iDebitPayment;
@@ -23,6 +25,7 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
     private final iDebitPayment iDebitPayment;
 
     @PostMapping("addDebts")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> addElement(@RequestBody DebitPayment debitPayment) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         try {
@@ -35,7 +38,10 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
         }
 
 
-    }  @GetMapping("reduceDebit")
+    }
+
+    @GetMapping("reduceDebit")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> reduceDebit(@RequestParam int idDebit) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         iDebitPayment.reduceDebit(idDebit);
@@ -45,6 +51,7 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
     // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
     @GetMapping("getListDebts")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> getListDebts() {
 
         List<DebitPayment> listDebts = iDebitPayment.visualizeAvailable();
@@ -56,6 +63,7 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
 
     @GetMapping("getCompletedDebts")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?>     visualizeCompletedDebts() {
 
         List<DebitPayment> listDebts = iDebitPayment.visualizeCompletedDebts();
@@ -64,6 +72,7 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
 
     @GetMapping("getMoreinfoDebts")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> visualizeMoreInfoDebts(@RequestParam String debitoID) {
 
         DebitsDTO listDebts = iDebitPayment.visualizeMoreInfoDebts(debitoID);
@@ -72,12 +81,13 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
 
 
     @GetMapping("getNumbersOfTotalDebts")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> numbersOfTotalDebts() {
-
-
         return ResponseEntity.ok().body( iDebitPayment.numbersOfTotalDebts());
     }
+
     @GetMapping("getNumbersOfFinishDebts")
+    @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> numbersOfFinishDebts() {
         return ResponseEntity.ok().body(iDebitPayment.numbersOfFinishDebts());
     }
