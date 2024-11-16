@@ -30,22 +30,20 @@ public class PdfService implements iPdfOperation {
 
     @Override
     public PDDocument createCustomPdf(String outputPdfPath, PdfDTO fields) throws IOException {
-        PDDocument document = new PDDocument();
-        PDPage page = new PDPage();
+        PDDocument document = new PDDocument(); // creazione del pdf
+        PDPage page = new PDPage(); // aggiungiamo la pagina al pdf
         document.addPage(page);
+        PDPageContentStream contentStream = new PDPageContentStream(document, page);  // questo permette di aggiungere i contenuti alla pagina linee immagini ecc
 
-        PDPageContentStream contentStream = new PDPageContentStream(document, page);  // Inizializzazione al di fuori del try-with-resources
-
-        try {
+        try { /* definiamo il titolo e le dimensioni del titolo*/
             // Dimensioni della pagina
             PDRectangle pageSize = page.getMediaBox();
-            // float pageWidth = pageSize.getWidth();
             float pageWidth = page.getMediaBox().getWidth();
             // Calcolo della larghezza del testo
             String text = "Invoice";
             PDFont font = PDType1Font.HELVETICA_BOLD;
             float fontSize = 18;
-            float textWidth = font.getStringWidth(text) / 1000 * fontSize;
+            float textWidth = font.getStringWidth(text) / 1000 * fontSize; // textWidth: Calcola la larghezza del testo per centrarlo sulla pagina. La funzione getStringWidth restituisce la larghezza del testo in unità di misura 1000, quindi bisogna fare il calcolo con fontSize per ottenere la larghezza in punti.
 
             // Calcolo della posizione orizzontale per centrare il testo
             float textX = (pageWidth - textWidth) / 2;
@@ -58,7 +56,7 @@ public class PdfService implements iPdfOperation {
             contentStream.showText(text);
             contentStream.endText();
 
-            // Campi singoli
+            // Campi singoli sempre nella parte alta del testo
             contentStream.beginText();
             contentStream.setFont(PDType1Font.HELVETICA, 10);
             contentStream.newLineAtOffset(50, 720);
@@ -67,21 +65,24 @@ public class PdfService implements iPdfOperation {
             contentStream.showText("Address: " + fields.getTotalAvailable());
             contentStream.newLineAtOffset(0, -20);
             contentStream.showText("Date: " + fields.getTotalSpent());
-            contentStream.newLineAtOffset(0, -20); // riga vuota
+            contentStream.newLineAtOffset(0, -20); // riga vuota , se aumento questo -20 la nuova riga sara' molto distanziata rispetto a quella sopra
             contentStream.endText();
 
-
+            /* configurazioni tabella */
+            // setto gli header delle celle della tabella
             String[] headers = {"Data", "Descrizione", "TipoEvento", "ValoreInserito", "EuroRisparmiati", "EuroDisponibili", "nuovaColonna"};
             float margin = 50; // Margine laterale
-            float tableYPosition = 680 - 50; // Altezza iniziale della tabella
+            float tableYPosition = 680 - 50;  // tableYPosition: La posizione verticale di inizio della tabella. Si trova a 680 - 50 (questa è una coordinata Y di partenza per la tabella).
             float rowHeight = 20f; // Altezza standard di ogni riga
             Integer[] columnWidths = {80, 90, 90, 80, 80, 80, 80}; // Specifica le larghezze di ciascuna colonna
 
             // Calcola la larghezza totale delle colonne
-            float totalTableWidth = Arrays.stream(columnWidths).mapToInt(Integer::intValue).sum();
+            float totalTableWidth = Arrays.stream(columnWidths).mapToInt(Integer::intValue).sum(); // Calcola la larghezza totale della tabella sommando la larghezza di tutte le colonne.
 
 
-// Verifica se la tabella è più larga della pagina, in caso riduci la larghezza delle colonne
+            // Verifica se la tabella è più larga della pagina, in caso riduci la larghezza delle colonne
+            /*Verifica se la larghezza totale della tabella è maggiore della larghezza disponibile sulla pagina (tenendo conto del margine laterale). Se sì, ridimensiona le colonne in modo che la tabella si adatti alla larghezza disponibile della pagina.*/
+
             if (totalTableWidth > pageWidth - 2 * margin) {
                 float scalingFactor = (pageWidth - 2 * margin) / totalTableWidth;
                 for (int i = 0; i < columnWidths.length; i++) {
@@ -89,9 +90,11 @@ public class PdfService implements iPdfOperation {
                 }
             }
 
-        // Calcola la posizione orizzontale per centrare la tabella
-             float tableXPosition = (pageWidth - totalTableWidth) / 2;
-
+            /**
+             * Calcola la posizione orizzontale per centrare la tabella sulla pagina. Questo viene fatto sottraendo la larghezza totale della tabella dalla larghezza della pagina e dividendo per 2, in modo che la tabella sia centrata.
+             */
+            // Calcola la posizione orizzontale per centrare la tabella
+            float tableXPosition = (pageWidth - totalTableWidth) / 2;
 
 
             // Disegno della tabella
@@ -100,21 +103,35 @@ public class PdfService implements iPdfOperation {
         } finally {
             // Chiudi il ContentStream e salva il documento
             contentStream.close();
-            document.save(outputPdfPath);
+            String fullPath = outputPdfPath + "/output.pdf";
+            document.save(fullPath);
             document.close();
-        }
+          }
+
 
         return document;
+
     }
 
     private void drawTable(PDPageContentStream contentStream, String[] headers, List<SummaryItDTO> rows, float margin,
                            float yStart, float rowHeight, Integer[] columnWidths, PDDocument document) throws IOException {
-        float nextY = yStart;
+        float nextY = yStart; // Imposta la coordinata verticale iniziale per la tabella.
 
         // Disegna header
-        drawTableRow(contentStream, headers, margin, nextY, rowHeight, columnWidths, true);
-        nextY -= rowHeight;
+        drawTableRow(contentStream, headers, margin, nextY, rowHeight, columnWidths, true); // chiama metodo che gestisce ogni singola riga dell'header
+        nextY -= rowHeight;  // Aggiorna la posizione Y per la riga successiva, spostandosi verso il basso di un'altezza di riga.
 
+        /**
+         * Controlla se la posizione Y è inferiore al margine inferiore della pagina. Se sì, non c'è abbastanza spazio per una nuova riga, quindi:
+         * contentStream.close();: Chiude il contentStream per la pagina corrente.
+         * Creazione di una nuova pagina:
+         * PDPage page = new PDPage();: Crea una nuova pagina.
+         * document.addPage(page);: Aggiunge la nuova pagina al documento.
+         * Apertura di un nuovo flusso di contenuto:
+         * contentStream = new PDPageContentStream(document, page);
+         * Reimposta la coordinata nextY: Riporta la posizione Y all'altezza iniziale.
+         * Ridisegna l'header sulla nuova pagina: Ogni pagina della tabella inizia con l'intestazione.
+         */
         for (SummaryItDTO item : rows) {
             if (nextY < margin) {
                 contentStream.close(); // Chiudi il contentStream corrente prima di creare una nuova pagina
@@ -128,7 +145,7 @@ public class PdfService implements iPdfOperation {
                 nextY -= rowHeight;
             }
 
-            String[] rowData = {
+            String[] rowData = { // crea i dati all'interno della riga
                     wrapText(item.getData().toString(), columnWidths[0]),
                     wrapText(item.getDescrizione(), columnWidths[1]),
                     wrapText(item.getTipoEvento().toString(), columnWidths[2]),
@@ -161,7 +178,6 @@ public class PdfService implements iPdfOperation {
             contentStream.lineTo(tableXPosition, y - rowHeight);
             contentStream.stroke(); // disegna il bordo a sinistra
         }
-
 
 
         for (int i = 0; i < content.length; i++) {
@@ -203,66 +219,100 @@ public class PdfService implements iPdfOperation {
         float maxHeight = rowHeight;
         float nextX = margin;
 
+        // Configurazione per margini interni e spaziatura
+        final float cellPadding = 5; // Margine interno
+        final float lineSpacing = 10; // Spazio tra le righe di testo
+
         for (int i = 0; i < content.length; i++) {
             // Suddividi il testo in più righe in base alla larghezza della colonna
-            List<String> wrappedLines = splitText(content[i], columnWidths[i] - 10);
+            List<String> wrappedLines = splitText(content[i], columnWidths[i] - 2 * cellPadding);
 
-            // Calcola l'altezza della cella
-            float cellHeight = wrappedLines.size() * 10 + 5;
+            // Calcola l'altezza della cella basata sul numero di righe
+            float cellHeight = wrappedLines.size() * lineSpacing + cellPadding;
             maxHeight = Math.max(maxHeight, cellHeight);
 
-            // Disegna il testo riga per riga
-            float textY = y - 15;
+            // Disegna il testo, riga per riga
+            float textY = y - cellPadding - lineSpacing; // Posizione iniziale del testo
             for (String line : wrappedLines) {
                 contentStream.beginText();
                 contentStream.setFont(PDType1Font.HELVETICA, 8);
-                contentStream.newLineAtOffset(nextX + 5, textY);
+                contentStream.newLineAtOffset(nextX + cellPadding, textY);
                 contentStream.showText(line);
                 contentStream.endText();
-                textY -= 10;
+                textY -= lineSpacing; // Passa alla riga successiva
             }
 
-            // Disegna bordi della cella
-            contentStream.moveTo(nextX, y);
+            // Disegna i bordi della cella
+            contentStream.moveTo(nextX, y); // Bordo sinistro
             contentStream.lineTo(nextX, y - maxHeight);
             contentStream.stroke();
 
-            nextX += columnWidths[i];
+            nextX += columnWidths[i]; // Passa alla colonna successiva
         }
 
-        // Chiudi la riga
+        // Disegna il bordo destro della riga
         contentStream.moveTo(nextX, y);
+        contentStream.lineTo(nextX, y - maxHeight);
+        contentStream.stroke();
+
+        // Disegna il bordo inferiore della riga
+        contentStream.moveTo(margin, y - maxHeight);
         contentStream.lineTo(nextX, y - maxHeight);
         contentStream.stroke();
 
         return y - maxHeight; // Restituisce la nuova posizione Y
     }
+
+/**
+ * passo in input il testo e la grandezza massima
+ */
     private List<String> splitText(String text, float maxWidth) throws IOException {
-        PDFont font = PDType1Font.HELVETICA;
-        float fontSize = 8;
-        List<String> lines = new ArrayList<>();
-        StringBuilder line = new StringBuilder();
+    PDFont font = PDType1Font.HELVETICA;
+    float fontSize = 8;
+    List<String> lines = new ArrayList<>();
+    StringBuilder line = new StringBuilder();
 
-        for (String word : text.split(" ")) {
-            String tempLine = line.length() == 0 ? word : line + " " + word;
-            float textWidth = font.getStringWidth(tempLine) / 1000 * fontSize;
+    for (String word : text.split(" ")) {
+        // Prova ad aggiungere la parola corrente alla riga
+        String tempLine = line.length() == 0 ? word : line + " " + word;
+        float textWidth = font.getStringWidth(tempLine) / 1000 * fontSize;
 
-            if (textWidth > maxWidth) {
-                lines.add(line.toString());
-                line = new StringBuilder(word);
-            } else {
-                line = new StringBuilder(tempLine);
-            }
-        }
-
-        if (line.length() > 0) {
+        if (textWidth > maxWidth) {
+            // Se la lunghezza eccede maxWidth, aggiungi la riga corrente
             lines.add(line.toString());
-        }
+            line = new StringBuilder(word);
 
-        return lines;
+            // Gestione per parole lunghe
+            while (font.getStringWidth(line.toString()) / 1000 * fontSize > maxWidth) {
+                int cutoffIndex = findCutoffIndex(line.toString(), maxWidth, font, fontSize);
+                lines.add(line.substring(0, cutoffIndex));
+                line = new StringBuilder(line.substring(cutoffIndex));
+            }
+        } else {
+            line = new StringBuilder(tempLine);
+        }
     }
 
+    // Aggiungi l'ultima riga residua
+    if (line.length() > 0) {
+        lines.add(line.toString());
+    }
 
+    return lines;
+}
+
+    // Metodo migliorato per parole lunghe
+    private int findCutoffIndex(String text, float maxWidth, PDFont font, float fontSize) throws IOException {
+        int cutoff = text.length(); // Di default, assume che l'intero testo rientri
+        for (int i = 1; i <= text.length(); i++) {
+            float width = font.getStringWidth(text.substring(0, i)) / 1000 * fontSize;
+            if (width > maxWidth) {
+                cutoff = i - 1; // Trova il punto di taglio massimo
+                break;
+            }
+        }
+        return cutoff > 0 ? cutoff : 1; // Assicura che ci sia almeno 1 carattere per evitare loop infiniti
+    }
 
 
     private String wrapText(String text, float maxWidth) {
@@ -270,7 +320,7 @@ public class PdfService implements iPdfOperation {
         return text.length() > maxChars ? text.substring(0, maxChars - 3) + "..." : text;
     }
 
-    private String getPathDesktop() {
+   static String getPathDesktop() {
         String osName = System.getProperty("os.name").toLowerCase();
 
         if (osName.contains("win")) {
@@ -288,81 +338,6 @@ public class PdfService implements iPdfOperation {
     }
 
 
-
-/*
-
-
-    private byte[] saveDocumentInByteArray(PDDocument pdDocument) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        pdDocument.save(byteArrayOutputStream);
-        pdDocument.close();
-        return byteArrayOutputStream.toByteArray();
-    }
-
-
-    private void savePdfToDatabase(byte[] pdfBytes, Order order) {
-        Optional<Pdf> pdf1 = Optional.ofNullable(pdfRepository.findByNumberOrder(order.getNumberOrder()));
-        if (pdf1.isEmpty()) {
-            Pdf pdf = Pdf.builder()
-                    .pdfData(pdfBytes)
-                    .numberOrder(order.getNumberOrder())
-                    .build();
-            pdfRepository.save(pdf);
-        }else {
-            pdf1.get().setPdfData(pdfBytes);
-            pdfRepository.save(pdf1.get());
-        }
-
-    }
-
-    private byte[] retrieveByteArrayFromDB(String order) {
-        Pdf pdf = pdfRepository.findByNumberOrder(order);
-        byte[] bytes = pdf.getPdfData();
-        return bytes;
-    }
-
-
-
-    private PDDocument constructPdfFromDatabase(String numberOrder) throws IOException {
-        // Recupera il byte array dal database
-        byte[] pdfBytes = retrieveByteArrayFromDB(numberOrder);
-
-        // Ricostruisce il documento PDF dall'array di byte
-        PDDocument pdfDocument = PDDocument.load(pdfBytes);
-
-        return pdfDocument; // Restituisce il documento PDF ricostruito
-    }
-
-
-
-    public void processPdfFromDB(String numberOrder) throws IOException {
-        String operationSystem = getPathDesktop();
-        // Ricrea il documento pdf
-        PDDocument pdfDocument = constructPdfFromDatabase(numberOrder);
-        // aggiungo una pagina per facs simile elaborazione dal ristorante
-
-        PDPage newPage = new PDPage(); // Aggiungi una nuova pagina
-        pdfDocument.addPage(newPage);
-        PDPageContentStream contentStream = new PDPageContentStream(pdfDocument, newPage);
-        contentStream.beginText();
-        contentStream.setFont(PDType1Font.HELVETICA, 11);
-        contentStream.newLineAtOffset(100, 650);
-        contentStream.showText("Grazie per l'acquisto il tuo ordine è stato processato");
-        contentStream.endText();
-        contentStream.close();
-        // Salva il PDF su disco
-        pdfDocument.save(operationSystem + "\\output1.pdf");
-
-        byte[] pdfBytes = saveDocumentInByteArray(pdfDocument);
-
-        Pdf pdf = pdfRepository.findByNumberOrder(numberOrder);
-        pdf.setPdfData(pdfBytes);
-        pdf.setDateSaved(LocalDate.now());
-        pdf.setDocumentProcessed(true);
-        pdfRepository.save(pdf);
-
-    }
- */
 
 
 }
