@@ -19,29 +19,21 @@ import java.time.LocalDate;
 @Builder
 public class SummaryItDTO {
 
-    @JsonProperty("RegistroEventiId")
-    private int RegistroEventiId;
+     private int registroEventiId;
 
-    @JsonProperty("Descrizione")
-    private String Descrizione;
+     private String descrizione;
 
-    @JsonProperty("Data")
-    private LocalDate Data;
+     private LocalDate data;
 
-    @JsonProperty("TipoEvento")
-    private Type TipoEvento;
+     private Type tipoEvento;
 
-    @JsonProperty("ValoreInserito")
-    private Double ValoreInserito;
+     private Double valoreInserito;
 
-    @JsonProperty("EuroRisparmiati")
-    private Double EuroRisparmiati;
+     private Double euroRisparmiati;
 
-    @JsonProperty("EuroDisponibili")
-    private String EuroDisponibili;
+     private String euroDisponibili;
 
-    @JsonProperty("PercentualeRisparmio")
-    private Double PercentualeRisparmio;
+     private Double percentualeRisparmio;
 
 
 

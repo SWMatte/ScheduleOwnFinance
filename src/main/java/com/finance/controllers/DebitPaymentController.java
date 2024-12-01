@@ -49,11 +49,9 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
         return ResponseEntity.ok().body(HttpStatus.OK);
     }
 
-    // TODO: AGGIUNGERE FEATURE LEGATA ALL'AUTENTIFICAZIONE FARE ANCHE NELL'ALTRO PROGETTO
     @GetMapping("getListDebts")
     @Authorized(roles = {Role.ADMIN})
     public ResponseEntity<?> getListDebts() {
-
         List<DebitPayment> listDebts = iDebitPayment.visualizeAvailable();
         return ResponseEntity.ok().body(listDebts);
 

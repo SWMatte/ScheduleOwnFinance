@@ -12,7 +12,7 @@ public  abstract class BaseService<T>   {
 
 
     protected boolean isNullValue(T element) {
-        return element == null || ((String) element).isEmpty();
+        return element == null ;
     }
 
 }

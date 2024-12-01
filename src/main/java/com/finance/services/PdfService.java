@@ -1,9 +1,13 @@
 package com.finance.services;
 
+import com.finance.entities.Auth.User;
 import com.finance.entities.DTO.PdfDTO;
 import com.finance.entities.DTO.SummaryItDTO;
+import com.finance.entities.Pdf;
 import com.finance.repositories.PdfRepository;
+import com.finance.utils.BaseService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -11,25 +15,31 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
 
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 
 @Service
 @AllArgsConstructor
-public class PdfService implements iPdfOperation {
+@Slf4j
+public class PdfService extends BaseService implements iPdfOperation {
 
     @Autowired
     private final PdfRepository pdfRepository;
 
 
     @Override
-    public PDDocument createCustomPdf(String outputPdfPath, PdfDTO fields) throws IOException {
+    public PDDocument createCustomPdf(String outputPdfPath, PdfDTO fields, User user) throws IOException {
         PDDocument document = new PDDocument(); // creazione del pdf
         PDPage page = new PDPage(); // aggiungiamo la pagina al pdf
         document.addPage(page);
@@ -100,18 +110,28 @@ public class PdfService implements iPdfOperation {
             // Disegno della tabella
             drawTable(contentStream, headers, fields.getListElement(), margin, tableYPosition, rowHeight, columnWidths, document);
 
-        } finally {
-            // Chiudi il ContentStream e salva il documento
-            contentStream.close();
-            String fullPath = outputPdfPath + "/output.pdf";
-            document.save(fullPath);
-            document.close();
-          }
+        } catch (Exception e) {
+
+        }
+        // Chiudi il ContentStream e salva il documento
+        //String fullPath = outputPdfPath + "/output.pdf";
+        //document.save(fullPath);
 
 
+        contentStream.close();
+        byte[] pdfBytes = saveDocumentInByteArray(document);
+        pdfRepository.save(Pdf.builder()
+                .documentProcessed(true)
+                .pdfData(pdfBytes)
+                .referenceMonth(fields.getMonth())
+                .dateSavedPdf(Date.from(Instant.now()))
+                .user(user)
+                .build());
+        document.close();
         return document;
 
     }
+
 
     private void drawTable(PDPageContentStream contentStream, String[] headers, List<SummaryItDTO> rows, float margin,
                            float yStart, float rowHeight, Integer[] columnWidths, PDDocument document) throws IOException {
@@ -263,43 +283,43 @@ public class PdfService implements iPdfOperation {
         return y - maxHeight; // Restituisce la nuova posizione Y
     }
 
-/**
- * passo in input il testo e la grandezza massima
- */
+    /**
+     * passo in input il testo e la grandezza massima
+     */
     private List<String> splitText(String text, float maxWidth) throws IOException {
-    PDFont font = PDType1Font.HELVETICA;
-    float fontSize = 8;
-    List<String> lines = new ArrayList<>();
-    StringBuilder line = new StringBuilder();
+        PDFont font = PDType1Font.HELVETICA;
+        float fontSize = 8;
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
 
-    for (String word : text.split(" ")) {
-        // Prova ad aggiungere la parola corrente alla riga
-        String tempLine = line.length() == 0 ? word : line + " " + word;
-        float textWidth = font.getStringWidth(tempLine) / 1000 * fontSize;
+        for (String word : text.split(" ")) {
+            // Prova ad aggiungere la parola corrente alla riga
+            String tempLine = line.length() == 0 ? word : line + " " + word;
+            float textWidth = font.getStringWidth(tempLine) / 1000 * fontSize;
 
-        if (textWidth > maxWidth) {
-            // Se la lunghezza eccede maxWidth, aggiungi la riga corrente
-            lines.add(line.toString());
-            line = new StringBuilder(word);
+            if (textWidth > maxWidth) {
+                // Se la lunghezza eccede maxWidth, aggiungi la riga corrente
+                lines.add(line.toString());
+                line = new StringBuilder(word);
 
-            // Gestione per parole lunghe
-            while (font.getStringWidth(line.toString()) / 1000 * fontSize > maxWidth) {
-                int cutoffIndex = findCutoffIndex(line.toString(), maxWidth, font, fontSize);
-                lines.add(line.substring(0, cutoffIndex));
-                line = new StringBuilder(line.substring(cutoffIndex));
+                // Gestione per parole lunghe
+                while (font.getStringWidth(line.toString()) / 1000 * fontSize > maxWidth) {
+                    int cutoffIndex = findCutoffIndex(line.toString(), maxWidth, font, fontSize);
+                    lines.add(line.substring(0, cutoffIndex));
+                    line = new StringBuilder(line.substring(cutoffIndex));
+                }
+            } else {
+                line = new StringBuilder(tempLine);
             }
-        } else {
-            line = new StringBuilder(tempLine);
         }
-    }
 
-    // Aggiungi l'ultima riga residua
-    if (line.length() > 0) {
-        lines.add(line.toString());
-    }
+        // Aggiungi l'ultima riga residua
+        if (line.length() > 0) {
+            lines.add(line.toString());
+        }
 
-    return lines;
-}
+        return lines;
+    }
 
     // Metodo migliorato per parole lunghe
     private int findCutoffIndex(String text, float maxWidth, PDFont font, float fontSize) throws IOException {
@@ -320,7 +340,7 @@ public class PdfService implements iPdfOperation {
         return text.length() > maxChars ? text.substring(0, maxChars - 3) + "..." : text;
     }
 
-   static String getPathDesktop() {
+    static String getPathDesktop() {
         String osName = System.getProperty("os.name").toLowerCase();
 
         if (osName.contains("win")) {
@@ -338,6 +358,42 @@ public class PdfService implements iPdfOperation {
     }
 
 
+    private byte[] saveDocumentInByteArray(PDDocument pdDocument) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        pdDocument.save(byteArrayOutputStream);
+        pdDocument.close();
+        return byteArrayOutputStream.toByteArray();
+    }
+
+
+    private byte[] retrieveByteArrayFromDB(User user, String month) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        log.info("Start to retrieve pdf from database");
+        try {
+            Pdf pdf = pdfRepository.findByUserAndReferenceMonth(user, month);
+            return pdf.getPdfData();
+
+        } catch (RuntimeException e) {
+            log.error("Error to retrieve dataPdf from database, will be returned a null value");
+            return null;
+        }
+    }
+
+
+    /**
+     * This method retrieve the PDF from the database based of the array of bytes and build again the document
+     */
+    public PDDocument constructPdfFromDatabase(User user, String month) {
+        log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        // Ricostruisce il documento PDF dall'array di byte
+        try (PDDocument pdfDocument = PDDocument.load(retrieveByteArrayFromDB(user, month))) {
+            log.info("End method: " + getCurrentMethodName());
+            return pdfDocument; // Restituisce il documento PDF ricostruito
+        } catch (IOException | NullPointerException e){
+            log.error("Error to generate Pdf");
+            return null;
+        }
+    }
 
 
 }

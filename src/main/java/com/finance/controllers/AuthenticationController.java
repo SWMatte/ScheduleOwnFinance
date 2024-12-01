@@ -28,7 +28,6 @@ public class AuthenticationController extends BaseService<String> {
     public ResponseEntity<?> register(@RequestBody User requester) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         try {
-
             return ResponseEntity.ok(userService.saveUser(requester));
         } catch (RuntimeException e) {
             log.error("Error into: " + getCurrentClassName() + "method: " + getCurrentMethodName());
