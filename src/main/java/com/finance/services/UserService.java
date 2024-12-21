@@ -7,6 +7,7 @@ import com.finance.entities.Auth.User;
 import com.finance.repositories.UserRepository;
 import com.finance.services.jwt.JwtService;
 import com.finance.utils.BaseService;
+import com.finance.utils.ExceptionCustom;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +42,14 @@ public class UserService extends BaseService implements iUserService {
     }
 
     @Override
-    public RegisterResponse saveUser(User user) {
+    public RegisterResponse saveUser(User user) throws ExceptionCustom {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if(userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new ExceptionCustom("Utente gia' a sistema!");
+        }
+
         try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
             log.info("Finished method " + getCurrentMethodName());
         } catch (Exception e) {
@@ -55,11 +60,12 @@ public class UserService extends BaseService implements iUserService {
     }
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request) throws ExceptionCustom {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+                User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ExceptionCustom("Utente non a sistema!"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Bad credential" + request.getPassword());
+            throw new RuntimeException("Password not correct");
         }
         log.info("Calling method Generate Token in JwtService");
         var jwtToken = jwtService.generateToken(user);

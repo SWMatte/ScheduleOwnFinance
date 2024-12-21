@@ -4,6 +4,7 @@ import com.finance.entities.Auth.AuthenticationRequest;
 import com.finance.entities.Auth.AuthenticationResponse;
 import com.finance.entities.Auth.RegisterResponse;
 import com.finance.entities.Auth.User;
+import com.finance.utils.ExceptionCustom;
 
 import javax.swing.text.html.Option;
 import java.util.Optional;
@@ -13,9 +14,9 @@ public interface iUserService {
 
     Optional<User> findByEmail(String email);
 
-    RegisterResponse saveUser(User user);
+    RegisterResponse saveUser(User user) throws ExceptionCustom;
 
-    AuthenticationResponse authenticate(AuthenticationRequest request);
+    AuthenticationResponse authenticate(AuthenticationRequest request) throws ExceptionCustom;
 
     String changePassword ( String newPassword, User user);
 }

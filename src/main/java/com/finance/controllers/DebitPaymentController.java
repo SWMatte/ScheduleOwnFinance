@@ -46,7 +46,7 @@ public class DebitPaymentController extends BaseService<DebitPayment> {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         iDebitPayment.reduceDebit(idDebit);
 
-        return ResponseEntity.ok().body(HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("getListDebts")
