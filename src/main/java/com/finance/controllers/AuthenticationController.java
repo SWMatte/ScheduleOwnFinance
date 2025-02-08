@@ -56,12 +56,11 @@ public class AuthenticationController extends BaseService<String> {
 
 
     @PostMapping("changePassword")
-    @Authorized(roles = {Role.ADMIN})
-    public ResponseEntity<?> changePassword(@RequestParam String password, User user) {
+     public ResponseEntity<?> changePassword(@RequestParam String password, @RequestParam String email) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
         try {
             if (!isNullValue(password)) {
-                return ResponseEntity.ok(userService.changePassword(password, user));
+                return ResponseEntity.ok(userService.changePassword(password, email));
             } else {
                 throw new RuntimeException("Password input is empty");
             }

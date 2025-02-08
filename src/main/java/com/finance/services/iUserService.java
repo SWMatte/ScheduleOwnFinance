@@ -18,5 +18,5 @@ public interface iUserService {
 
     AuthenticationResponse authenticate(AuthenticationRequest request) throws ExceptionCustom;
 
-    String changePassword ( String newPassword, User user);
+    String changePassword ( String newPassword, String email);
 }

@@ -76,8 +76,9 @@ public class UserService extends BaseService implements iUserService {
 
 
     @Override
-    public String changePassword(String newPassword, User user) {
+    public String changePassword(String newPassword, String email) {
         log.info("Enter into: " + getCurrentClassName() + " start method: " + getCurrentMethodName());
+        User user = userRepository.findByEmail(email).orElseThrow();
         String oldPassword = user.getPassword();
         Optional<User> userDatabase = userRepository.findById(user.getUserId());
         return  userDatabase.filter(userDb -> (userDb.getPassword().equals(oldPassword))).map(userDb -> {

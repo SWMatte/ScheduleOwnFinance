@@ -70,11 +70,11 @@ public class PdfService extends BaseService implements iPdfOperation {
             contentStream.beginText();
             contentStream.setFont(PDType1Font.HELVETICA, 10);
             contentStream.newLineAtOffset(50, 720);
-            contentStream.showText("Name: " + fields.getMonth());
+            contentStream.showText("Mese corrente: " + fields.getMonth());
             contentStream.newLineAtOffset(0, -20);
-            contentStream.showText("Address: " + fields.getTotalAvailable());
+            contentStream.showText("Totale disponibile per il mese : " + fields.getTotalAvailable());
             contentStream.newLineAtOffset(0, -20);
-            contentStream.showText("Date: " + fields.getTotalSpent());
+            contentStream.showText("Totale speso nel mese: " + fields.getTotalSpent());
             contentStream.newLineAtOffset(0, -20); // riga vuota , se aumento questo -20 la nuova riga sara' molto distanziata rispetto a quella sopra
             contentStream.endText();
 
